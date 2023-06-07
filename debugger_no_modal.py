@@ -40,8 +40,8 @@ def walk_directory(directory):
 
 def main(args):
     prompt=args.prompt
-    directory= args.directory
     model=args.model
+    directory = args.directory
     code_contents = walk_directory(directory)
 
     # Now, `code_contents` is a dictionary that contains the content of all your non-image files
@@ -52,8 +52,7 @@ def main(args):
     )
     system = "You are an AI debugger who is trying to debug a program for a user based on their file system. The user has provided you with the following files and their contents, finally folllowed by the error message or issue they are facing."
     prompt = (
-        "My files are as follows: "
-        + context
+        f"My files are as follows: {context}"
         + "\n\n"
         + "My issue is as follows: "
         + prompt
@@ -72,9 +71,10 @@ def generate_response(system_prompt, user_prompt, model=DEFAULT_MODEL, *args):
     # Set up your OpenAI API credentials
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    messages = []
-    messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": user_prompt})
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
     # loop thru each arg and add it to messages alternating role between "assistant" and "user"
     role = "assistant"
     for value in args:
@@ -101,9 +101,7 @@ def generate_response(system_prompt, user_prompt, model=DEFAULT_MODEL, *args):
             sleep(30)
             print("Retrying...")
 
-    # Get the reply from the API response
-    reply = response.choices[0]["message"]["content"]
-    return reply
+    return response.choices[0]["message"]["content"]
 
 
 if __name__ == "__main__":

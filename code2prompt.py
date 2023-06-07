@@ -27,18 +27,22 @@ def walk_directory(directory):
 
 @stub.local_entrypoint()
 def main(prompt=None, directory=DEFAULT_DIR, model=DEFAULT_MODEL):
-  code_contents = walk_directory(directory)
+    code_contents = walk_directory(directory)
 
-  # Now, `code_contents` is a dictionary that contains the content of all your non-image files
-  # You can send this to OpenAI's text-davinci-003 for help
+    # Now, `code_contents` is a dictionary that contains the content of all your non-image files
+    # You can send this to OpenAI's text-davinci-003 for help
 
-  context = "\n".join(f"{path}:\n{contents}" for path, contents in code_contents.items())
-  system = "You are an AI debugger who is trying to fully describe a program, in order for another AI program to reconstruct every file, data structure, function and functionality. The user has provided you with the following files and their contents:"
-  prompt = "My files are as follows: " + context + "\n\n" + (("Take special note of the following: " + prompt) if prompt else "")
-  prompt += "\n\nDescribe the program in markdown using specific language that will help another AI program reconstruct the given program in as high fidelity as possible."
-  res = generate_response.call(system, prompt, model)
-  # print res in teal
-  print("\033[96m" + res + "\033[0m")
+    context = "\n".join(f"{path}:\n{contents}" for path, contents in code_contents.items())
+    system = "You are an AI debugger who is trying to fully describe a program, in order for another AI program to reconstruct every file, data structure, function and functionality. The user has provided you with the following files and their contents:"
+    prompt = (
+        f"My files are as follows: {context}"
+        + "\n\n"
+        + (f"Take special note of the following: {prompt}" if prompt else "")
+    )
+    prompt += "\n\nDescribe the program in markdown using specific language that will help another AI program reconstruct the given program in as high fidelity as possible."
+    res = generate_response.call(system, prompt, model)
+    # print res in teal
+    print("\033[96m" + res + "\033[0m")
 
 
 @stub.function(
@@ -58,9 +62,10 @@ def generate_response(system_prompt, user_prompt, model=DEFAULT_MODEL, *args):
     # Set up your OpenAI API credentials
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    messages = []
-    messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": user_prompt})
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
     # loop thru each arg and add it to messages alternating role between "assistant" and "user"
     role = "assistant"
     for value in args:
@@ -77,6 +82,4 @@ def generate_response(system_prompt, user_prompt, model=DEFAULT_MODEL, *args):
     # Send the API request
     response = openai.ChatCompletion.create(**params)
 
-    # Get the reply from the API response
-    reply = response.choices[0]["message"]["content"]
-    return reply
+    return response.choices[0]["message"]["content"]
