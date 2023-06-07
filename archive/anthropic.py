@@ -26,13 +26,8 @@ def generate_response(system_prompt, user_prompt, *args):
     # Set up your API credentials
     ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 
-    messages = []
-    messages.append("Human: " + user_prompt)
-    messages.append("Human: " + system_prompt)
-    
-    for value in args:
-      messages.append("Human: " + value)
-
+    messages = [f"Human: {user_prompt}", f"Human: {system_prompt}"]
+    messages.extend(f"Human: {value}" for value in args)
     messages.append("Assistant: ")
     print("messages", messages)
     params = {
@@ -164,7 +159,7 @@ def main(prompt, outputdir=generatedDir, file=None):
             print(shared_dependencies)
             # write shared dependencies as a md file inside the generated directory
             write_file("shared_dependencies.md", shared_dependencies)
-            
+
             # Existing for loop
             for filename, filecode in generate_file.map(
                 list_actual, kwargs=dict(filepaths_string=filepaths_string, shared_dependencies=shared_dependencies, prompt=prompt)
@@ -173,7 +168,7 @@ def main(prompt, outputdir=generatedDir, file=None):
 
 
     except ValueError:
-        print("Failed to parse result: " + result)
+        print(f"Failed to parse result: {result}")
 
 
 def write_file(filename, filecode):
@@ -182,6 +177,6 @@ def write_file(filename, filecode):
     print(filecode)
 
     # Open the file in write mode
-    with open(generatedDir + "/" + filename, "w") as file:
+    with open(f"{generatedDir}/{filename}", "w") as file:
         # Write content to the file
         file.write(filecode)

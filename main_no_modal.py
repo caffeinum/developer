@@ -185,7 +185,7 @@ def main(prompt, directory=DEFAULT_DIR, file=None):
                 write_file(filename, filecode, directory)
 
     except ValueError:
-        print("Failed to parse result: " + result)
+        print(f"Failed to parse result: {result}")
 
 
 def write_file(filename, filecode, directory):
@@ -193,7 +193,7 @@ def write_file(filename, filecode, directory):
     print("\033[94m" + filename + "\033[0m")
     print(filecode)
 
-    file_path = directory + "/" + filename
+    file_path = f"{directory}/{filename}"
     dir = os.path.dirname(file_path)
     os.makedirs(dir, exist_ok=True)
 

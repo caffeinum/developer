@@ -27,18 +27,23 @@ def walk_directory(directory):
 
 @stub.local_entrypoint()
 def main(prompt, directory=DEFAULT_DIR, model="gpt-3.5-turbo"):
-  code_contents = walk_directory(directory)
+    code_contents = walk_directory(directory)
 
-  # Now, `code_contents` is a dictionary that contains the content of all your non-image files
-  # You can send this to OpenAI's text-davinci-003 for help
+    # Now, `code_contents` is a dictionary that contains the content of all your non-image files
+    # You can send this to OpenAI's text-davinci-003 for help
 
-  context = "\n".join(f"{path}:\n{contents}" for path, contents in code_contents.items())
-  system = "You are an AI debugger who is trying to debug a program for a user based on their file system. The user has provided you with the following files and their contents, finally folllowed by the error message or issue they are facing."
-  prompt = "My files are as follows: " + context + "\n\n" + "My issue is as follows: " + prompt
-  prompt += "\n\nGive me ideas for what could be wrong and what fixes to do in which files."
-  res = generate_response.call(system, prompt, model)
-  # print res in teal
-  print("\033[96m" + res + "\033[0m")
+    context = "\n".join(f"{path}:\n{contents}" for path, contents in code_contents.items())
+    system = "You are an AI debugger who is trying to debug a program for a user based on their file system. The user has provided you with the following files and their contents, finally folllowed by the error message or issue they are facing."
+    prompt = (
+        f"My files are as follows: {context}"
+        + "\n\n"
+        + "My issue is as follows: "
+        + prompt
+    )
+    prompt += "\n\nGive me ideas for what could be wrong and what fixes to do in which files."
+    res = generate_response.call(system, prompt, model)
+    # print res in teal
+    print("\033[96m" + res + "\033[0m")
 
 
 @stub.function(
@@ -58,9 +63,10 @@ def generate_response(system_prompt, user_prompt, model="gpt-3.5-turbo", *args):
     # Set up your OpenAI API credentials
     openai.api_key = os.environ["OPENAI_API_KEY"]
 
-    messages = []
-    messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": user_prompt})
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
     # loop thru each arg and add it to messages alternating role between "assistant" and "user"
     role = "assistant"
     for value in args:
@@ -78,6 +84,4 @@ def generate_response(system_prompt, user_prompt, model="gpt-3.5-turbo", *args):
     # Send the API request
     response = openai.ChatCompletion.create(**params)
 
-    # Get the reply from the API response
-    reply = response.choices[0]["message"]["content"]
-    return reply
+    return response.choices[0]["message"]["content"]
